@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# Get a notification when command has finished.
+#
+
+# Run command
+start_time=$(date '+%s')
+$@
+exitcode=$?
+
+# Get time
+end_time=$(date '+%s')
+
+duration=$((end_time - start_time))
+sec=$((duration % 60))
+min=$(((duration / 60) % 60))
+hour=$((duration / 3600))
+duration_string=$(printf '%d:%02d:%02d' $hour $min $sec)
+
+# Notify
+if [ "$exitcode" -eq 0 ]
+then
+    pushover.sh -p 0 -t "Command Succeeded" "Finished in ${duration_string}: $@"
+    echo "(Sent pushover success notification)"
+else
+    pushover.sh -p 0 -s falling -t "Command Failed" "Failed in ${duration_string} (exitcode: $exitcode): $@"
+    echo "(Sent pushover failure notification)"
+fi
